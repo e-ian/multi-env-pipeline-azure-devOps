@@ -1,0 +1,44 @@
+# templates/deploy-aks.yml
+parameters:
+  - name: environment
+    type: string
+  - name: keyVaultName
+    type: string
+
+steps:
+- task: AzureKeyVault@2
+  inputs:
+    azureSubscription: 'Azure-Service-Connection'
+    KeyVaultName: '${{ parameters.keyVaultName }}'
+    SecretsFilter: '*'
+    RunAsPreJob: true
+
+- task: HelmDeploy@0
+  inputs:
+    command: upgrade
+    chartType: FilePath
+    chartPath: '$(Pipeline.Workspace)/helm-charts/application-*.tgz'
+    releaseName: 'interswitch-app'
+    namespace: '${{ parameters.environment }}'
+    valueFile: 'charts/application/values-${{ parameters.environment }}.yaml'
+    install: true
+    waitForExecution: true
+    arguments: >
+      --set image.tag=$(tag)
+      --set secrets.apiKey=$(apiKey)
+      --set secrets.dbConnection=$(dbConnectionString)
+
+- task: AzureCLI@2
+  displayName: 'Verify Deployment'
+  inputs:
+    azureSubscription: 'Azure-Service-Connection'
+    scriptType: bash
+    scriptLocation: inlineScript
+    inlineScript: |
+      # Check deployment status
+      kubectl rollout status deployment/interswitch-app -n ${{ parameters.environment }}
+      if [ $? -ne 0 ]; then
+        echo "Deployment failed, initiating rollback..."
+        helm rollback interswitch-app -n ${{ parameters.environment }}
+        exit 1
+      fi
