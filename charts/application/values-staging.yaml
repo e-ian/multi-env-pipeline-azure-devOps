@@ -1,0 +1,24 @@
+# charts/application/values-staging.yaml
+
+environment: staging
+replicaCount: 2
+
+image:
+  repository: interswitchacr.azurecr.io/api
+  tag: latest
+
+ingress:
+  enabled: true
+  hosts:
+    - host: staging-api.interswitch.com
+      paths:
+        - path: /
+          pathType: Prefix
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
