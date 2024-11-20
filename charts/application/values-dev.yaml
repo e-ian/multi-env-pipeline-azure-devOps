@@ -1,0 +1,24 @@
+# charts/application/values-dev.yaml
+
+environment: development
+replicaCount: 1
+
+image:
+  repository: interswitchacr.azurecr.io/api
+  tag: latest
+
+ingress:
+  enabled: true
+  hosts:
+    - host: dev-api.interswitch.com
+      paths:
+        - path: /
+          pathType: Prefix
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
