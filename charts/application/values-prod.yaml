@@ -1,0 +1,23 @@
+# charts/application/values-prod.yaml
+environment: production
+replicaCount: 3
+
+image:
+  repository: interswitchacr.azurecr.io/api
+  tag: latest
+
+ingress:
+  enabled: true
+  hosts:
+    - host: api.interswitch.com
+      paths:
+        - path: /
+          pathType: Prefix
+
+resources:
+  limits:
+    cpu: 2000m
+    memory: 2Gi
+  requests:
+    cpu: 1000m
+    memory: 1Gi
