@@ -1,0 +1,152 @@
+trigger:
+  branches:
+    include:
+    - main
+  paths:
+    exclude:
+    - README.md
+    - docs/*
+
+variables:
+  # Docker registry service connection established during pipeline creation
+  dockerRegistryServiceConnection: 'acr-service-connection'
+  containerRegistry: 'interswitch.azurecr.io'
+  dockerfilePath: '**/Dockerfile'
+  tag: '$(Build.BuildId)'
+  
+  # Agent VM image name
+  vmImageName: 'ubuntu-latest'
+  
+  # Helm chart path
+  helmChartPath: './charts/application'
+
+stages:
+- stage: Build
+  displayName: Build and Test
+  jobs:
+  - job: BuildAndTest
+    displayName: Build and Test
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - task: DotNetCoreCLI@2
+      displayName: Restore NuGet packages
+      inputs:
+        command: restore
+        projects: '**/*.csproj'
+
+    - task: DotNetCoreCLI@2
+      displayName: Build
+      inputs:
+        command: build
+        projects: '**/*.csproj'
+        arguments: '--configuration Release'
+
+    - task: DotNetCoreCLI@2
+      displayName: Run Unit Tests
+      inputs:
+        command: test
+        projects: '**/*Tests/*.csproj'
+        arguments: '--configuration Release --collect:"XPlat Code Coverage"'
+
+    - task: PublishCodeCoverageResults@1
+      inputs:
+        codeCoverageTool: 'Cobertura'
+        summaryFileLocation: '$(Agent.TempDirectory)/**/coverage.cobertura.xml'
+
+    - task: WhiteSource@21
+      displayName: 'Run Security Scan'
+      inputs:
+        cwd: '$(System.DefaultWorkingDirectory)'
+
+    - task: Docker@2
+      displayName: Build and Push Docker Image
+      inputs:
+        command: buildAndPush
+        repository: '$(containerRegistry)/interswitch-app'
+        dockerfile: $(dockerfilePath)
+        containerRegistry: $(dockerRegistryServiceConnection)
+        tags: |
+          $(tag)
+          latest
+
+    - task: HelmDeploy@0
+      displayName: Package Helm Chart
+      inputs:
+        command: package
+        chartPath: $(helmChartPath)
+        destination: '$(Build.ArtifactStagingDirectory)'
+        
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)'
+        artifact: 'helm-charts'
+        publishLocation: 'pipeline'
+
+- stage: DeployToDev
+  displayName: Deploy to Development
+  dependsOn: Build
+  condition: succeeded()
+  variables:
+    - group: dev-variables
+  jobs:
+  - deployment: Deploy
+    displayName: Deploy to AKS
+    environment: development
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - template: templates/deploy-aks.yml
+            parameters:
+              environment: 'development'
+              keyVaultName: 'interswitch-kv-dev'
+
+- stage: DeployToStaging
+  displayName: Deploy to Staging
+  dependsOn: DeployToDev
+  condition: succeeded()
+  variables:
+    - group: staging-variables
+  jobs:
+  - deployment: Deploy
+    displayName: Deploy to AKS
+    environment: 
+      name: staging
+      approval:
+        timeout: 4320 # 3 days
+        approvers:
+          - ianemma70@gmail.com
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - template: templates/deploy-aks.yml
+            parameters:
+              environment: 'staging'
+              keyVaultName: 'interswitch-kv-staging'
+
+- stage: DeployToProduction
+  displayName: Deploy to Production
+  dependsOn: DeployToStaging
+  condition: succeeded()
+  variables:
+    - group: prod-variables
+  jobs:
+  - deployment: Deploy
+    displayName: Deploy to AKS
+    environment:
+      name: production
+      approval:
+        timeout: 4320 # 3 days
+        approvers:
+          - ianemma70@gmail.com
+          - security-lead@interswitch.com #appropriate email to be added
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - template: templates/deploy-aks.yml
+            parameters:
+              environment: 'production'
+              keyVaultName: 'interswitch-kv-prod'
