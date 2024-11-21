@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.002.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{382289A5-5FB9-44EA-86A6-C668E58E3E51}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Interswitch.Tests", "src\Interswitch.Tests\Interswitch.Tests.csproj", "{C187F260-1B19-46E8-B57D-560F6EA7C53C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Interswitch.Api", "src\Interswitch.Api\Interswitch.Api.csproj", "{A7953803-9991-48E0-876D-F7DFF036E2BF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C187F260-1B19-46E8-B57D-560F6EA7C53C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C187F260-1B19-46E8-B57D-560F6EA7C53C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C187F260-1B19-46E8-B57D-560F6EA7C53C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C187F260-1B19-46E8-B57D-560F6EA7C53C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A7953803-9991-48E0-876D-F7DFF036E2BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A7953803-9991-48E0-876D-F7DFF036E2BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A7953803-9991-48E0-876D-F7DFF036E2BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A7953803-9991-48E0-876D-F7DFF036E2BF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{C187F260-1B19-46E8-B57D-560F6EA7C53C} = {382289A5-5FB9-44EA-86A6-C668E58E3E51}
+		{A7953803-9991-48E0-876D-F7DFF036E2BF} = {382289A5-5FB9-44EA-86A6-C668E58E3E51}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {85EBC44D-15A7-466F-AE8B-015504C92F52}
+	EndGlobalSection
+EndGlobal
