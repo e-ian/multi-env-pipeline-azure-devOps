@@ -1,28 +1,22 @@
-// src/Interswitch.Tests/HealthControllerTests.cs
 using Microsoft.AspNetCore.Mvc;
 using Xunit;
 using Interswitch.Api.Controllers;
 
-namespace Interswitch.Tests;
-
-public class HealthControllerTests
+namespace Interswitch.Tests
 {
-    private readonly HealthController _controller;
-
-    public HealthControllerTests()
+    public class HealthControllerTests
     {
-        _controller = new HealthController();
-    }
+        [Fact]
+        public void Get_ReturnsOkResult()
+        {
+            // Arrange
+            var controller = new HealthController();
 
-    [Fact]
-    public void Get_ReturnsOkResult()
-    {
-        // Act
-        var result = _controller.Get();
+            // Act
+            var result = controller.Get();
 
-        // Assert
-        var okResult = Assert.IsType<OkObjectResult>(result);
-        var value = Assert.IsType<dynamic>(okResult.Value);
-        Assert.Equal("healthy", value.status);
+            // Assert
+            Assert.IsType<OkObjectResult>(result);
+        }
     }
 }

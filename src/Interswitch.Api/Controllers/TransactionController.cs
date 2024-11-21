@@ -1,5 +1,6 @@
 // src/Interswitch.Api/Controllers/TransactionController.cs
 using Microsoft.AspNetCore.Mvc;
+using Interswitch.Core.Models;
 
 namespace Interswitch.Api.Controllers;
 
@@ -8,14 +9,13 @@ namespace Interswitch.Api.Controllers;
 public class TransactionController : ControllerBase
 {
     [HttpPost]
-    public async Task<IActionResult> ProcessTransaction([FromBody] TransactionRequest request)
+    public async Task<IActionResult> ProcessTransaction(TransactionRequest request)
     {
-        // Placeholder for actual transaction processing
-        await Task.Delay(100); // Simulate processing
-        return Ok(new { 
+        var response = new 
+        {
             transactionId = Guid.NewGuid(),
-            status = "processed",
-            timestamp = DateTime.UtcNow
-        });
+            status = "processed"
+        };
+        return Ok(response);
     }
 }

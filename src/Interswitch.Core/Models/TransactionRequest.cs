@@ -1,5 +1,5 @@
 // src/Interswitch.Api/Models/TransactionRequest.cs
-namespace Interswitch.Api.Models;
+namespace Interswitch.Core.Models;
 
 public class TransactionRequest
 {
