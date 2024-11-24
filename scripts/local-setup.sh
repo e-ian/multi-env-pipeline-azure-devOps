@@ -1,6 +1,4 @@
 #!/bin/bash
-# scripts/local-setup.sh
-# set -x
 
 # Check prerequisites
 command -v docker >/dev/null 2>&1 || { echo "Docker is required but not installed. Aborting." >&2; exit 1; }
