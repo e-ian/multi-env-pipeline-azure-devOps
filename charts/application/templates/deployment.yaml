@@ -4,16 +4,16 @@ kind: Deployment
 metadata:
   name: {{ include "interswitch-api.fullname" . }}
   labels:
-    {{- include "interswitch-api.labels" . | nindent 4 }}
+    {{ include "interswitch-api.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "interswitch-api.selectorLabels" . | nindent 6 }}
+      {{ include "interswitch-api.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "interswitch-api.selectorLabels" . | nindent 8 }}
+        {{ include "interswitch-api.selectorLabels" . | nindent 8 }}
     spec:
       containers:
         - name: {{ .Chart.Name }}
@@ -40,4 +40,4 @@ spec:
                   name: {{ include "interswitch-api.fullname" . }}
                   key: db-connection
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+            {{ toYaml .Values.resources | nindent 12 }}
