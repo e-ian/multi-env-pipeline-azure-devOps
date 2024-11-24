@@ -4,7 +4,7 @@ kind: Service
 metadata:
   name: {{ include "interswitch-api.fullname" . }}
   labels:
-    {{- include "interswitch-api.labels" . | nindent 4 }}
+    {{ include "interswitch-api.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
@@ -13,4 +13,4 @@ spec:
       protocol: TCP
       name: http
   selector:
-    {{- include "interswitch-api.selectorLabels" . | nindent 4 }}
+    {{ include "interswitch-api.selectorLabels" . | nindent 4 }}
