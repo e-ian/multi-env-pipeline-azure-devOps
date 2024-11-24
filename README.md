@@ -48,17 +48,46 @@ This repository contains the infrastructure as code and deployment configuration
 ## Environment Setup
 
 ### 1. Azure Resources
+Setup Azure from the CLI by running the following commands
+
+```bash
+
+   # Login to Azure
+   az login
+
+   # Set subscription
+   az account set --subscription "Your-Subscription-ID"
+
+   # Make scripts executable
+   chmod +x scripts/*.sh
+
+   # Run infrastructure setup
+   ./scripts/init-infrastructure.sh
+```
+
 
 Ensure the following Azure resources are provisioned:
 
 ```bash
-# Example resource naming convention
-ACR: interswitch{env}acr
-AKS: interswitch-{env}-aks
-KeyVault: interswitch-{env}-kv
+   # Example resource naming convention
+   ACR: interswitch{env}acr
+   AKS: interswitch-{env}-aks
+   KeyVault: interswitch-{env}-kv
 ```
 
 ### 2. Azure DevOps Configuration
+
+Setup Azure Devops for the CLi by running the follwoing commands
+```bash
+   # Install Azure DevOps CLI extension
+   az extension add --name azure-devops
+
+   # Login to Azure DevOps
+   az devops login
+
+   # Set organization
+   az devops configure --defaults organization=https://dev.azure.com/your-org
+```
 
 #### Variable Groups
 Create the following variable groups in Azure DevOps:
@@ -79,6 +108,8 @@ Create service connections for:
 - Azure subscription
 - Azure Container Registry
 - Azure Key Vault
+
+NB: Part of the infrastructure configuration can be done by running the script `init-infrastructure.sh` to configure the infrastructure and the script `create-devops-resources.sh` to create the needed resources. You can also use the Azure portal to configure and create these resources.
 
 ### 3. Pipeline Environments
 Configure environments in Azure DevOps:
@@ -131,9 +162,25 @@ The pipeline follows this workflow:
    - Helm chart packaging
 
 2. **Development Deployment**
-   - Automatic deployment
-   - Smoke tests
-   - Health checks
+   - To deploy to development, run the commands below using Azure CLI and kubectl
+
+   ```bash
+   # Get AKS credentials
+   1. az aks get-credentials --resource-group interswitch-rg --name interswitch-dev-aks
+
+   # Create namespace
+   2. kubectl create namespace development
+
+   # Deploy using Helm
+   3. helm upgrade --install interswitch-api ./charts/application \
+   --namespace development \
+   --values ./charts/application/values-dev.yaml
+   ```
+   - To run tests locally in development and ensure they are passing before building the pipeline, run the command. This creates a local build and runs tests
+
+   ```bash
+      ./scripts/local-setup.sh
+   ```
 
 3. **Staging Deployment**
    - Manual approval required
@@ -171,6 +218,60 @@ helm history interswitch-app -n [NAMESPACE]
 - Application performance
 - Security events
 
+The following commands can be used to monitor deployment from the terminal using Kubectl
+```bash
+   # Check pods
+   kubectl get pods -n development
+
+   # Check services
+   kubectl get svc -n development
+
+   # View logs
+   kubectl logs -f deployment/interswitch-api -n development
+```
+
+### Setup Azure DevOps Pipeline
+To set up Azure DevOps pipeline from the command line, use the command below
+
+```bash
+   # Create pipeline
+   az pipelines create --name 'Interswitch-API' \
+   --yaml-path '/.azure-pipelines/main-pipeline.yml' \
+   --repository 'multi-env-pipeline-azure-devOps' \
+   --repository-type 'tfsgit' \
+   --branch main
+```
+and create the directory structure using the command below
+
+```bash
+   # Create project structure
+   mkdir -p src/{Interswitch.Api,Interswitch.Core,Interswitch.Tests} \
+         charts/application/{templates,values} \
+         scripts \
+         docs \
+         .azure-pipelines/templates
+
+   # Copy files
+   cp -r * /path/to/your/project/ 
+```
+
+Reconnect ACR to AKS when neccessary using
+```bash
+   az aks update -n myAKSCluster -g myResourceGroup --attach-acr myACR
+```
+
+Grant pipleline permission to Key Vault using
+```bash
+   az role assignment create --role "Key Vault Secrets User" \
+  --assignee-object-id $(az ad sp show --id <pipeline-principal-id> --query id -o tsv) \
+  --scope $(az keyvault show --name <key-vault-name> --query id -o tsv)
+```
+
+If you are having trouble with the Kubernetes connection, then run the following command
+```bash
+   az aks get-credentials --resource-group interswitch-rg --name interswitch-dev-aks --overwrite-existing
+```
+
 ## Security Considerations
 
 1. **Secret Management**
@@ -179,14 +280,13 @@ helm history interswitch-app -n [NAMESPACE]
    - Access audit logging
 
 2. **Access Control**
-   - RBAC enforcement
+   - RBAC(Role Based Access Control) enforcement
    - Environment segregation
    - Minimal privilege principle
 
 3. **Network Security**
    - Network policies
    - Private endpoints
-   - Service mesh (optional)
 
 ## Contributing
 
